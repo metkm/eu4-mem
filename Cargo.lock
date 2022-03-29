@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "rust-playground"
+name = "eu4-mem"
 version = "0.1.0"
 dependencies = [
  "windows",
