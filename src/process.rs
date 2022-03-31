@@ -16,6 +16,11 @@ use windows::Win32::{
     },
 };
 
+pub struct Game {
+    pub handle: HANDLE,
+    pub address: usize
+}
+
 pub fn get_pids() -> Vec<u32> {
     let mut pids: Vec<u32> = Vec::with_capacity(1024);
     let mut pids_count = 0;
@@ -97,14 +102,13 @@ pub fn get_base_address(process_id: u32, title: &str) -> Option<usize> {
     }
 }
 
-pub fn read_process(handle: HANDLE, address: usize, buff: &mut [u8]) {
-    let address_ptr = address as *const i64;
+pub fn read_process(handle: HANDLE, address: &usize, buff: &mut [u8]) {
     let read = 0;
 
     unsafe {
         ReadProcessMemory(
             handle,
-            address_ptr as *const c_void,
+            *address as *const c_void,
             buff as *mut _ as *mut c_void,
             size_of_val(&buff),
             read as *mut usize
@@ -112,7 +116,7 @@ pub fn read_process(handle: HANDLE, address: usize, buff: &mut [u8]) {
     }
 }
 
-pub fn get_base_point(handle: HANDLE, address: usize) -> i64 {
+pub fn get_address(handle: HANDLE, address: &usize) -> usize {
     let mut buffer: [u8; 8] = [0; 8];
     read_process(
         handle,
@@ -120,27 +124,47 @@ pub fn get_base_point(handle: HANDLE, address: usize) -> i64 {
         &mut buffer
     );
 
-    let parsed = i64::from_le_bytes(buffer);
+    let parsed = usize::from_le_bytes(buffer);
+    println!("x {:X}", i64::from_le_bytes(buffer));
     parsed
 }
 
-pub fn start() {
+pub fn get_value(handle: HANDLE, address: &usize) -> i32 {
+    let mut buffer: [u8; 4] = [0; 4];
+    read_process(handle, address, &mut buffer);
+
+    let parsed = i32::from_le_bytes(buffer);
+    parsed
+}
+
+pub fn add_offsets(handle: HANDLE, base: &usize, offsets: &[usize]) -> usize {
+    let mut point = get_address(handle, base);
+
+    for offset in &offsets[0..offsets.len() - 1] {
+        point = get_address(handle, &(point + offset));
+    };
+
+    point + offsets.last().unwrap()
+}
+
+pub fn get_game() -> Option<Game> {
     for pid in get_pids() {
         let handle = if let Some(handle) = get_handle(pid) {
             handle
         } else {
             continue;
         };
+
         if handle_name_contains(handle, "eu4.exe") {
             let base = get_base_address(pid, "eu4.exe");
             if let Some(base_address) = base {
-                let base_point = get_base_point(handle, base_address + 0x2420DA8) as usize;
-
-                let mut year_buff: [u8; 4] = [0; 4];
-                read_process(handle, base_point + 0x1DD4, &mut year_buff);
-
-                println!("{}", i32::from_le_bytes(year_buff));
+                return Some(Game {
+                    handle: handle,
+                    address: base_address
+                })
             }
         }
     }
+
+    return None
 }
