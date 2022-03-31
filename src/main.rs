@@ -15,10 +15,10 @@ fn delay() {
 fn main() {
     let tech_offsets = Tech::new();
 
-    'proc: loop {
+    loop {
         if let Some(game) = get_game() {
             let Game { handle, address } = game;
-            let adm_tech_address = add_offsets(handle, &(address + 0x02420FC8), &tech_offsets.Admin);
+            let adm_tech_address = add_offsets(handle, &(address + 0x02420FC8), &tech_offsets.admin);
             println!("address: {:X}", adm_tech_address);
 
             'read: loop {
