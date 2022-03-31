@@ -125,7 +125,6 @@ pub fn get_address(handle: HANDLE, address: &usize) -> usize {
     );
 
     let parsed = usize::from_le_bytes(buffer);
-    println!("x {:X}", i64::from_le_bytes(buffer));
     parsed
 }
 

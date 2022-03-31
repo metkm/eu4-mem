@@ -19,7 +19,6 @@ fn main() {
         if let Some(game) = get_game() {
             let Game { handle, address } = game;
             let adm_tech_address = add_offsets(handle, &(address + 0x02420FC8), &tech_offsets.admin);
-            println!("address: {:X}", adm_tech_address);
 
             'read: loop {
                 println!("Admin Tech is: {}", get_value(handle, &adm_tech_address));
