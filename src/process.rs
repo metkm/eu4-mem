@@ -102,7 +102,7 @@ pub fn get_base_address(process_id: u32, title: &str) -> Option<usize> {
     }
 }
 
-pub fn read_process(handle: HANDLE, address: &usize, buff: &mut [u8]) {
+pub fn read_process(handle: &HANDLE, address: &usize, buff: &mut [u8]) {
     let read = 0;
 
     unsafe {
@@ -116,7 +116,7 @@ pub fn read_process(handle: HANDLE, address: &usize, buff: &mut [u8]) {
     }
 }
 
-pub fn get_address(handle: HANDLE, address: &usize) -> usize {
+pub fn get_address(handle: &HANDLE, address: &usize) -> usize {
     let mut buffer: [u8; 8] = [0; 8];
     read_process(
         handle,
@@ -128,7 +128,7 @@ pub fn get_address(handle: HANDLE, address: &usize) -> usize {
     parsed
 }
 
-pub fn get_value(handle: HANDLE, address: &usize) -> i32 {
+pub fn get_value(handle: &HANDLE, address: &usize) -> i32 {
     let mut buffer: [u8; 4] = [0; 4];
     read_process(handle, address, &mut buffer);
 
@@ -136,7 +136,7 @@ pub fn get_value(handle: HANDLE, address: &usize) -> i32 {
     parsed
 }
 
-pub fn add_offsets(handle: HANDLE, base: &usize, offsets: &[usize]) -> usize {
+pub fn add_offsets(handle: &HANDLE, base: &usize, offsets: &[usize]) -> usize {
     let mut point = get_address(handle, base);
 
     for offset in &offsets[0..offsets.len() - 1] {

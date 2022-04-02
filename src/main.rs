@@ -1,34 +1,49 @@
-mod process;
 mod offsets;
+mod process;
+
+use offsets::TechOffsets;
+use process::{add_offsets, get_game, get_value, Game};
 
 use std::{
-    time::{Duration, Instant},
-    thread::sleep
+    thread::sleep,
+    time::{Duration},
 };
-use process::{get_game, add_offsets, Game, get_value};
-use offsets::{Tech};
 
 fn delay() {
     sleep(Duration::from_millis(500));
 }
 
 fn main() {
-    let tech_offsets = Tech::new();
+    let tech_offsets = TechOffsets::default();
 
-    loop {
+    'process: loop {
         if let Some(game) = get_game() {
             let Game { handle, address } = game;
-            let adm_tech_address = add_offsets(handle, &(address + 0x02420FC8), &tech_offsets.admin);
-            let dip_tech_address = add_offsets(handle, &(address + 0x02420FC8), &tech_offsets.diplo);
+            
+            let tech_base = address + 0x02420FC8;
+            let admin_tech_address = add_offsets(&handle, &tech_base, &tech_offsets.admin);
+            let diplo_tech_address = add_offsets(&handle, &tech_base, &tech_offsets.diplo);
+            let military_tech_address = add_offsets(&handle, &tech_base, &tech_offsets.military);
+            
+            'game: loop {
+                if handle.is_invalid() {
+                    println!("Game process is lost!");
+                    break 'process;
+                }
 
-            'read: loop {
-                let now = Instant::now();
-                println!("Admin Tech is: {}, Diplo Tech is: {}", get_value(handle, &adm_tech_address), get_value(handle, &dip_tech_address));
-                println!("Delay: {:.2?}", now.elapsed());
+                let admin = get_value(&handle, &admin_tech_address);
+                if admin < 2 { // game is not loaded yet. Just skip it.
+                    continue;
+                }
+
+                println!("Admin Tech = {}", get_value(&handle, &admin_tech_address));
+                println!("Diplo Tech = {}", get_value(&handle, &diplo_tech_address));
+                println!("Military Tech = {}", get_value(&handle, &military_tech_address));
+
                 delay();
             }
         } else {
-            println!("Couldn' get the game process! Retrying..");
+            println!("Can't find eu4.exe process! Retrying..");
         }
 
         delay();
