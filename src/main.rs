@@ -14,15 +14,13 @@ fn delay() {
 }
 
 fn main() {
-    let tech_offsets = TechOffsets::default();
-
     loop {
         if let Some(game) = get_game() {
             let Game { handle, address } = game;
             let tech_base = address + 0x02420FC8;
             
             'handle: loop {
-                let admin_tech_address = add_offsets(&handle, &tech_base, &tech_offsets.admin);
+                let admin_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::ADMIN);
 
                 if get_value(&handle, &admin_tech_address) < 1 {
                     println!("Probably game is not loaded yet. If it is try to open tech tab once.");
@@ -30,9 +28,9 @@ fn main() {
                     continue;
                 }
                 
-                let admin_tech_address = add_offsets(&handle, &tech_base, &tech_offsets.admin);
-                let diplo_tech_address = add_offsets(&handle, &tech_base, &tech_offsets.diplo);
-                let military_tech_address = add_offsets(&handle, &tech_base, &tech_offsets.military);
+                let admin_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::ADMIN);
+                let diplo_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::DIPLO);
+                let military_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::MILITARY);
                 
                 loop {
                     if get_value(&handle, &admin_tech_address) < 1 {
