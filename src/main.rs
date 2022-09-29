@@ -1,3 +1,5 @@
+#![feature(let_else)]
+
 mod offsets;
 mod process;
 mod read;
@@ -14,49 +16,49 @@ fn delay() {
 
 fn main() {
     loop {
-        if let Some(game) = get_game() {
-            let Game { handle, address } = game;
-            let tech_base = address + 0x02420FC8;
-            let country_base = address + 0x0243D018;
+        let Some(Game{ handle, address }) = get_game() else {
+            println!("Can't find eu4.exe process! Retrying..");
 
-            'handle: loop {
-                // let admin_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::ADMIN);
+            delay();
+            continue;
+        };
 
+        let tech_base = address + 0x02420FC8;
+        let country_base = address + 0x023F22F8;
+
+        'handle: loop {
+            // let admin_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::ADMIN);
+
+            // if get_value(&handle, &admin_tech_address) < 1 {
+            //     println!("Probably game is not loaded yet. If it is try to open tech tab once.");
+            //     delay();
+            //     continue;
+            // }
+
+            let admin_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::ADMIN);
+            let diplo_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::DIPLO);
+            let military_tech_address =
+                add_offsets(&handle, &tech_base, &TechOffsets::MILITARY);
+
+            let country_name_address =
+                add_offsets(&handle, &country_base, &CountryOffsets::NAME);
+
+            loop {
                 // if get_value(&handle, &admin_tech_address) < 1 {
-                //     println!("Probably game is not loaded yet. If it is try to open tech tab once.");
-                //     delay();
-                //     continue;
+                //     println!("Lost process!");
+                //     break 'handle;
                 // }
 
-                let admin_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::ADMIN);
-                let diplo_tech_address = add_offsets(&handle, &tech_base, &TechOffsets::DIPLO);
-                let military_tech_address =
-                    add_offsets(&handle, &tech_base, &TechOffsets::MILITARY);
+                let name = read_string(&handle, country_name_address);
+                println!(
+                    "Country: {name} --------- \n Admin: {} \n Diplo: {} \n Mil: {}",
+                    get_value(&handle, &admin_tech_address),
+                    get_value(&handle, &diplo_tech_address),
+                    get_value(&handle, &military_tech_address)
+                );
 
-                let country_name_address =
-                    add_offsets(&handle, &country_base, &CountryOffsets::NAME);
-
-                loop {
-                    // if get_value(&handle, &admin_tech_address) < 1 {
-                    //     println!("Lost process!");
-                    //     break 'handle;
-                    // }
-
-                    let name = read_string(&handle, country_name_address);
-                    println!(
-                        "Country: {name} --------- \n Admin: {} \n Diplo: {} \n Mil: {}",
-                        get_value(&handle, &admin_tech_address),
-                        get_value(&handle, &diplo_tech_address),
-                        get_value(&handle, &military_tech_address)
-                    );
-
-                    delay();
-                }
+                delay();
             }
-        } else {
-            println!("Can't find eu4.exe process! Retrying..");
         }
-
-        delay();
     }
 }
