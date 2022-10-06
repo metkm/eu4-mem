@@ -40,12 +40,7 @@ pub fn get_pids() -> Vec<u32> {
 
 pub fn get_handle(pid: u32) -> Option<HANDLE> {
     let handle = unsafe { OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pid) };
-
-    if handle.is_invalid() {
-        None
-    } else {
-        Some(handle)
-    }
+    handle.is_invalid().then_some(handle)
 }
 
 pub fn get_module_file_name(handle: HANDLE, instance: HINSTANCE) -> String {
@@ -60,12 +55,7 @@ pub fn get_module_file_name(handle: HANDLE, instance: HINSTANCE) -> String {
 
 pub fn handle_name_contains(handle: HANDLE, title: &str) -> bool {
     let name = get_module_file_name(handle, HINSTANCE::default());
-
-    if name.contains(title) {
-        true
-    } else {
-        false
-    }
+    name.contains(title)
 }
 
 pub fn get_base_address(process_id: u32, title: &str) -> Option<usize> {
@@ -124,16 +114,14 @@ pub fn get_address(handle: &HANDLE, address: &usize) -> usize {
         &mut buffer
     );
 
-    let parsed = usize::from_le_bytes(buffer);
-    parsed
+    usize::from_le_bytes(buffer)
 }
 
 pub fn get_value(handle: &HANDLE, address: &usize) -> i32 {
     let mut buffer: [u8; 4] = [0; 4];
     read_process(handle, address, &mut buffer);
 
-    let parsed = i32::from_le_bytes(buffer);
-    parsed
+    i32::from_le_bytes(buffer)
 }
 
 pub fn add_offsets(handle: &HANDLE, base: &usize, offsets: &[usize]) -> usize {
