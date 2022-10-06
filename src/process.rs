@@ -136,10 +136,8 @@ pub fn add_offsets(handle: &HANDLE, base: &usize, offsets: &[usize]) -> usize {
 
 pub fn get_game() -> Option<Game> {
     for pid in get_pids() {
-        let handle = if let Some(handle) = get_handle(pid) {
-            handle
-        } else {
-            continue;
+        let Some(handle) = get_handle(pid) else {
+            continue
         };
 
         if handle_name_contains(handle, "eu4.exe") {
